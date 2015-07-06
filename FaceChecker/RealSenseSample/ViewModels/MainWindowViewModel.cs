@@ -60,12 +60,20 @@ namespace RealSenseSample.ViewModels
         }
 
         /// <summary>
+        /// デストラクタ
+        /// </summary>
+        ~MainWindowViewModel()
+        {
+            this.Uninitialize();
+        }
+
+        /// <summary>
         /// 初期化
         /// </summary>
         private void Initialize()
         {
             this.SensorModel = RealSenseSensorModel.Instance;
-            this.SensorModel.PropertyChanged += Model_PropertyChanged;
+            this.SensorModel.PropertyChanged += this.Model_PropertyChanged;
 
             this.Canvas = new Canvas();
 
@@ -122,6 +130,18 @@ namespace RealSenseSample.ViewModels
                 this.resultText[i].Foreground = Brushes.Magenta;
                 this.resultText[i].FontSize = 20;
                 this.Canvas.Children.Add(this.resultText[i]);
+            }
+        }
+
+        /// <summary>
+        /// 破棄処理
+        /// </summary>
+        private void Uninitialize()
+        {
+            if (this.SensorModel != null)
+            {
+                this.SensorModel.PropertyChanged -= this.Model_PropertyChanged;
+                this.SensorModel = null;
             }
         }
 
