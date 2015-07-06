@@ -113,7 +113,27 @@ namespace RealSenseSample.Models
         /// </summary>
         private void InitializeFace()
         {
-            //// 実装してください ////
+            // 顔検出を有効にする
+            var status = this.senseManager.EnableFace();
+            if (status < pxcmStatus.PXCM_STATUS_NO_ERROR)
+            {
+                throw new Exception("顔検出の有効化に失敗しました");
+            }
+
+            //顔検出器を生成する
+            var faceModule = this.senseManager.QueryFace();
+
+            //顔検出のプロパティを取得
+            PXCMFaceConfiguration config = faceModule.CreateActiveConfiguration();
+            config.SetTrackingMode(PXCMFaceConfiguration.TrackingModeType.FACE_MODE_COLOR_PLUS_DEPTH);
+            config.detection.isEnabled = true;
+            config.detection.maxTrackedFaces = DETECTION_MAXFACES;
+            config.landmarks.isEnabled = true;
+            config.landmarks.maxTrackedFaces = LANDMARK_MAXFACES;
+            config.ApplyChanges();
+            config.ApplyChanges();
+
+            this.FaceData = faceModule.CreateOutput();
         }
 
         /// <summary>
@@ -198,7 +218,9 @@ namespace RealSenseSample.Models
         /// <param name="sample">フレームデータ</param>
         private void UpdateFaceFrame(PXCMCapture.Sample sample)
         {
-            //// 実装してください ////
+            this.FaceData.Update();
+            //FaceDataの内容が差し替わるだけなので変更通知を明示的に送信する
+            this.OnPropertyChanged("FaceData");
         }
 
         /// <summary>

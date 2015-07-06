@@ -196,7 +196,46 @@ namespace RealSenseSample.ViewModels
                         //ランドマークデータから、特徴点の位置を取得、表示
                         if (landmarkData[i].QueryPoints(out landmarkPoints))
                         {
-                            //// 実装してください ////
+                            for (int j = 0; j < numPoints; j++)
+                            {
+                                this.facePoints[i, j].RenderTransform = new TranslateTransform(landmarkPoints[j].image.x, landmarkPoints[j].image.y);
+                            }
+
+                            //ガイドラインの描画
+                            var eyeblowY =
+                                (
+                                landmarkPoints[landmarkData[i].QueryPointIndex(PXCMFaceData.LandmarkType.LANDMARK_EYEBROW_LEFT_CENTER)].image.y +
+                                landmarkPoints[landmarkData[i].QueryPointIndex(PXCMFaceData.LandmarkType.LANDMARK_EYEBROW_RIGHT_CENTER)].image.y
+                                ) / 2;
+                            var foreheadTopY = eyeblowY - ((eyeblowY - faceRect.y) * 2);   //額と眉の距離は顔矩形の上端と眉のY位置の距離の2倍と仮定（雰囲気）
+                            var noseBottom = landmarkPoints[landmarkData[i].QueryPointIndex(PXCMFaceData.LandmarkType.LANDMARK_NOSE_BOTTOM)];
+                            var chin = landmarkPoints[landmarkData[i].QueryPointIndex(PXCMFaceData.LandmarkType.LANDMARK_CHIN)];
+                            foreach (GuidelineType guideline in Enum.GetValues(typeof(GuidelineType)))
+                            {
+                                switch (guideline)
+                                {
+                                    case GuidelineType.ForeheadTop:
+                                        this.guidelines[i][guideline].RenderTransform = new TranslateTransform(faceRect.x, foreheadTopY);
+                                        break;
+                                    case GuidelineType.Eyeblow:
+                                        this.guidelines[i][guideline].RenderTransform = new TranslateTransform(faceRect.x, eyeblowY);
+                                        break;
+                                    case GuidelineType.NoseBottom:
+                                        this.guidelines[i][guideline].RenderTransform = new TranslateTransform(faceRect.x, noseBottom.image.y);
+                                        break;
+                                    case GuidelineType.ChinBottom:
+                                        this.guidelines[i][guideline].RenderTransform = new TranslateTransform(faceRect.x, chin.image.y);
+                                        break;
+                                }
+                                this.guidelines[i][guideline].X2 = faceRect.w;
+                            }
+
+                            //判定結果の描画
+                            this.resultText[i].RenderTransform = new TranslateTransform(faceRect.x, faceRect.y + faceRect.h + 16);
+                            float a = eyeblowY - foreheadTopY;
+                            float b = noseBottom.image.y - eyeblowY;
+                            float c = chin.image.y - noseBottom.image.y;
+                            this.resultText[i].Text = string.Format("{0:#.0} : {1:#.0} : {2:#.0}", 1, b / a, c / a);
                         }
                     }
                 }
